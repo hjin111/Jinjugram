@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- mapper.xml 파일 DTD 를 위한 코드 -->
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.jinju.jinjugram.user.repository.UserRepository">
+
+	<insert id="insertUser" parameterType="map">
+		INSERT INTO
+			`user`
+		(
+			`loginId`
+			, `password`
+			, `name`
+			, `email`
+		)
+		VALUE
+		(
+			#{loginId}
+			, #{password}
+			, #{name}
+			, #{email}
+		)
+		
+	</insert>
+	
+	<select id="selectCountByLoginId" parameterType="String" resultType="int"><!-- insert/update/delete는 int로 고정 되어 있으니깐 생략 가능, select 는 우리가 만든 메소드에서 리턴할 값이 정수 형태다 라는 걸 명확히 알려줘야 된다. select 는 리턴 타입의 생략 없다. 조회한 결과의 어떤 타입으로 저장해서 리턴할지를 정확히 정리해줘야 한다.-->
+		SELECT
+			count(*)
+		FROM 
+			`user`
+		WHERE
+			`loginId` = #{loginId}
+	
+	</select>
+
+</mapper>

@@ -26,8 +26,9 @@
 							<input type="text" id="loginIdInput" class="form-control col-9" placeholder="아이디">
 							<button type="button" class="btn btn-info btn-sm" id="duplicateBtn">중복확인</button>
 						</div>
+						<div class="text-danger small d-none" id="duplicateText">중복된 ID 입니다.</div>
+						<div class="text-success small d-none" id="availableText">사용가능한 ID 입니다.</div>
 						
-					
 						<input type="password" id="passwordInput" class="form-control mt-3" placeholder="패스워드">
 						<input type="password" id="passwordConfirmInput" class="form-control mt-3" placeholder="패스워드 확인">
 						
@@ -49,5 +50,133 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" integrity="sha384-+sLIOodYLS7CIrQpBjl+C7nPvqq+FbNUBDunl/OZv93DB7Ln/533i8e/mZXLi/P+" crossorigin="anonymous"></script>
+<script>
+	$(document).ready(function(){
+		
+		// 전역변수 => 어떤 함수 안에서도 다 사용 가능
+		// 중복확인 체크 여부 변수
+		var isDuplicateCheck = false; // 최초는 check를 안한 상태 표시
+		// id 중복 여부
+		var isDuplicateId = true; // 중복이 됐을 떄 통과되면 안되니깐 중복이 됐다라는 걸 의미하는 true 값을 세팅
+		
+		$("#loginIdInput").on("input", function(){
+			// 아이디 중복확인과 관련된 모든 부분을 초기화 한다.
+			// 확인 버튼을 누르기 전으로 되돌린다는 얘기는 중복 체크 확인을 하지 않은 상태로 만들고
+			// id 중복을 true인 상태로 만들고 저 값들을 초기화 한 상태가 이루어져야 함
+			isDuplicateCheck = false;
+			isDuplicateId = true;
+			
+			// 뭔가 입력이 되면 메세지들을 다 숨겨라
+			$("#duplicateText").addClass("d-none");
+			$("#availableText").addClass("d-none");
+		});
+	
+		$("#duplicateBtn").on("click", function(){
+			// 사용자가 입력한 id 얻어오기
+			let id = $("#loginIdInput").val();
+			
+			// 유효성 검사
+			if(id == ""){
+				alert("아이디를 입력하세요");
+				return;
+			}
+			
+			// API 호출하기
+			$.ajax({
+				type:"get"
+				, url:"/user/duplicate-id"
+				, data:{"loginId":id}
+				, success:function(data){
+					
+					// 중복확인 체크
+					isDuplicateCheck = true;
+					isDuplicateId = data.isDuplicate;
+					
+					if(data.isDuplicate){
+						// alert("중복됨");
+						// isDuplicateId = true;
+						$("#duplicateText").removeClass("d-none");
+						$("#availableText").addClass("d-none");
+					}else{
+						// alert("중복 안됨");
+						// isDuplicateId = false;
+						$("#availableText").removeClass("d-none");
+						$("#duplicateText").addClass("d-none");
+					}
+				}
+				, error:function(){
+					alert("중복확인 에러");
+				}
+			});
+		})
+		
+		$("#joinBtn").on("click", function(){
+			// 입력 값 가져오기
+			let id = $("#loginIdInput").val();
+			let password = $("#passwordInput").val();
+			let passwordConfirm = $("#passwordConfirmInput").val();
+			let name = $("#nameInput").val();
+			let email = $("#emailInput").val();
+			
+			// 유효성 검사
+			if(id == ""){
+				alert("아이디를 입력하세요");
+				return;
+			}
+			
+			// id 중복확인 체크를 안한 경우
+			if(!isDuplicateCheck){
+				alert("아이디 중복 확인을 해주세요!");
+				return;
+			}
+			
+			// id가 중복된 경우
+			if(isDuplicateId){
+				alert("아이디 중복되었습니다.");
+				return;
+			}
+			
+			if(password == ""){
+				alert("비밀번호를 입력하세요");
+				return;
+			}
+			
+			if(password != passwordConfirm){
+				alert("비밀번호가 일치하지 않습니다");
+				return;
+			}
+			
+			if(name == ""){
+				alert("이름을 입력하세요");
+				return;
+			}
+			
+			if(email == ""){
+				alert("이메일을 입력하세요");
+				return;
+			}
+			
+			// API 호출
+			$.ajax({
+				type:"post"
+				, url:"/user/join"
+				, data:{"loginId":id, "password":password, "name":name, "email":email}
+				, success:function(data){
+					if(data.result == "success"){
+						// 로그인 페이지로 이동
+						location.href="/user/login-view";
+					}else{
+						alert("회원가입 실패");
+					}
+				}
+				, error:function(){
+					alert("회원가입 에러");
+				}
+			});
+			
+			
+		});
+	});
+</script>
 </body>
 </html>
